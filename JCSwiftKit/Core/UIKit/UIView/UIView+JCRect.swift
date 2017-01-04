@@ -10,6 +10,96 @@ import UIKit
 
 extension UIView {
     
+    /// 获取View所在的控制器，响应链上的第一个Controller
+    func viewController() -> UIViewController? {
+        var nextResponder = self as UIResponder?;
+        
+        repeat {
+            nextResponder = nextResponder?.next!;
+            if nextResponder is UIViewController {
+                return nextResponder as? UIViewController;
+            }
+        }while (nextResponder != nil);
+        
+        return nil;
+    }
+    
+    /// 清空所有子视图
+    func removeAllSubviews() {
+        for view in self.subviews {
+            view.removeFromSuperview();
+        }
+    }
+    
+    func cornerRadius(radius: CGFloat) -> UIView {
+        self.clipsToBounds = true;
+        self.layer.cornerRadius = radius;
+        return self;
+    }
+    
+    func borderWidth(width: CGFloat) -> UIView {
+        self.layer.borderWidth = width;
+        return self;
+    }
+    
+    func borderColor(color: UIColor) -> UIView {
+        self.layer.borderColor = color.cgColor;
+        return self;
+    }
+    
+    /// 视图快照(截图)
+    func snapshotImage() -> UIImage {
+        UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.isOpaque, 0);
+        self.layer.render(in: (UIGraphicsGetCurrentContext())!);
+        let snap = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return snap!;
+    }
+    
+    ///视图快照(截图) 屏幕会闪下
+    func snapshotImageAfterScreenUpdates(afterUpdates: Bool) -> UIImage {
+        if !self.responds(to: #selector(UIView.drawHierarchy(in:afterScreenUpdates:))) {
+            return self.snapshotImage();
+        }
+        
+        UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.isOpaque, 0);
+        self.drawHierarchy(in: self.bounds, afterScreenUpdates: afterUpdates);
+        let snap = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return snap!;
+    }
+    
+    /// 生成快照PDF
+    func snapshotPDF() -> NSData {
+        var bounds = self.bounds;
+        let data = NSMutableData.init();
+        let consumer = CGDataConsumer.init(data: data as CFMutableData);
+        let context = CGContext.init(consumer: consumer!, mediaBox: &bounds, nil);
+        context?.beginPDFPage(nil);
+        context?.translateBy(x: 0, y: bounds.size.height);
+        context?.scaleBy(x: 1.0, y: -1.0);
+        self.layer.render(in: context!);
+        context?.endPDFPage();
+        context?.closePDF();
+        return data;
+    }
+    
+    /// 根据触摸点，获取子视图
+    func getSubviewWithTouches(touches: Set<UITouch>) -> AnyObject? {
+        let touch = touches.first;
+        let point = touch?.location(in: self);
+        for _subview in self.subviews {
+            if (_subview.frame.contains(point!)) {
+                return _subview;
+            }
+        }
+        return nil;
+    }
+}
+
+// MARK: - Frame
+extension UIView {
+    
     // frame.origin.x
     var x: CGFloat {
         set {
