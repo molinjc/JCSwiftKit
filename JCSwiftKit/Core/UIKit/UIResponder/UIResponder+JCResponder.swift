@@ -8,6 +8,18 @@
 
 import UIKit
 
+var firstResponder: UIResponder?;
+
 extension UIResponder {
 
+    /// 获取当前第一响应者
+    class func currentFirstResponder() -> Any? {
+        firstResponder = nil;
+        UIApplication.shared.sendAction(#selector(UIResponder.findCurrentFirstResponder(sender:)), to: nil, from: nil, for: nil);
+        return firstResponder;
+    }
+    
+    func findCurrentFirstResponder(sender: Any) {
+        firstResponder = self;
+    }
 }
