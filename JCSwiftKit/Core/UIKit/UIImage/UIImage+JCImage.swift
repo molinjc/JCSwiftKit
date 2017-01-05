@@ -159,3 +159,50 @@ extension UIImage {
 }
 
 
+// MARK: - QRCode
+extension UIImage {
+    
+    /// 生成二维码图片
+    class func QRCodeImage(text: String, size: CGFloat) -> UIImage {
+        let stringData = text.description.data(using: String.Encoding.utf8);
+        let QRFilter = CIFilter.init(name: "CIQRCodeGenerator");
+        QRFilter?.setValue(stringData, forKey: "inputMessage");
+        QRFilter?.setValue("M", forKey: "inputCorrectionLevel");
+        let extent = QRFilter?.outputImage?.extent;
+        
+        let scale1 = size / (extent?.size.width)!;
+        let scale2 = size / (extent?.size.height)!;
+        var scale: CGFloat;
+        if scale1 > scale2 {
+            scale = scale2;
+        }else {
+            scale = scale1;
+        }
+        
+        let width = (extent?.size.width)! * scale;
+        let height = (extent?.size.height)! * scale;
+        
+        let cs = CGColorSpaceCreateDeviceGray();
+        let bitmapRef = CGContext.init(data: nil, width: Int(width), height: Int(height), bitsPerComponent: 8, bytesPerRow: 0, space: cs, bitmapInfo: CGImageAlphaInfo.none.rawValue);
+        
+        let context = CIContext.init(options: nil);
+        let bitmapImage = context.createCGImage((QRFilter?.outputImage)!, from: extent!);
+        bitmapRef?.interpolationQuality = CGInterpolationQuality.none;
+        bitmapRef?.scaleBy(x: scale, y: scale);
+        bitmapRef?.draw(bitmapImage!, in: extent!);
+        
+        let scaledImage = bitmapRef?.makeImage();
+        let reusult = UIImage.init(cgImage: scaledImage!);
+        return reusult;
+    }
+    
+    /// 二维码图片内容信息
+    func QRCodeImageContext() -> String? {
+        let content = CIContext.init(options: nil);
+        let detector = CIDetector.init(ofType: CIDetectorTypeQRCode, context: content, options: nil);
+        let cimage = CIImage.init(cgImage: self.cgImage!);
+        let features = detector?.features(in: cimage);
+        let f: CIQRCodeFeature = features?.first as! CIQRCodeFeature;
+        return f.messageString!;
+    }
+}
