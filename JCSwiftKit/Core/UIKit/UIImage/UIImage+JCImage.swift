@@ -62,6 +62,64 @@ extension UIImage {
         return colorImage!;
     }
     
+    /// 灰度图片
+    func grayImage() -> UIImage? {
+        let colorSpace = CGColorSpaceCreateDeviceGray();
+        let context = CGContext.init(data: nil, width: Int(self.size.width), height: Int(self.size.height), bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace, bitmapInfo: CGImageAlphaInfo.none.rawValue);
+        if (context == nil) {
+            return nil;
+        }
+        
+        context?.draw(self.cgImage!, in: CGRect.init(x: 0, y: 0, width: self.size.width, height: self.size.height));
+        let grayImage = UIImage.init(cgImage: (context?.makeImage())!);
+        return grayImage;
+    }
+    
+    /// 取图片某点像素的颜色
+    func color(atPixel: CGPoint) -> UIColor? {
+        let width = self.size.width;
+        let height = self.size.height;
+        
+        if !CGRect.init(x: 0, y: 0, width: width, height: height).contains(atPixel) {
+            return nil;
+        }
+        
+        let pointX = trunc(atPixel.x);  // 取整
+        let pointY = trunc(atPixel.y);
+        let colorSpace = CGColorSpaceCreateDeviceRGB();
+        let bytesPerPixel = 4;
+        let bytesPerRow = bytesPerPixel * 1;
+        let bitsPerComponent = 8;
+        var pixelData = Array<Int>.init();
+        
+        let context = CGContext.init(data: &pixelData, width: 1, height: 1, bitsPerComponent: bitsPerComponent, bytesPerRow: bytesPerRow, space: colorSpace, bitmapInfo: (CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+        
+        context?.setBlendMode(CGBlendMode.copy);
+        context?.translateBy(x: pointX, y: (pointY - height));
+        context?.draw(self.cgImage!, in: CGRect.init(x: 0, y: 0, width: width, height: height));
+        
+        let red = CGFloat(pixelData[0]) / 255.0;
+        let green = CGFloat(pixelData[1]) / 255.0;
+        let blue = CGFloat(pixelData[2]) / 255.0;
+        let alpha = CGFloat(pixelData[3]) / 255.0;
+        return UIColor.init(red: red, green: green, blue: blue, alpha: alpha);
+    }
+    
+    /// 设置图片透明
+    func imageByApplying(alpha: CGFloat) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(self.size, false, 0.0);
+        let ctx = UIGraphicsGetCurrentContext();
+        let area = CGRect.init(x: 0, y: 0, width: self.size.width, height: self.size.height);
+        ctx?.scaleBy(x: 1, y: -1);
+        ctx?.translateBy(x: 0, y: -area.size.height);
+        ctx?.setBlendMode(CGBlendMode.multiply);
+        ctx?.setAlpha(alpha);
+        ctx?.draw(self.cgImage!, in: area);
+        let newImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return newImage;
+    }
+    
     /// 等比例缩放图片
     func toScale(scale: CGFloat) -> UIImage {
         UIGraphicsBeginImageContext(CGSize.init(width: self.size.width * scale, height: self.size.height * scale));
@@ -90,6 +148,33 @@ extension UIImage {
         let image = UIGraphicsGetImageFromCurrentImageContext();
         UIGraphicsEndImageContext();
         return image!;
+    }
+    
+    /// 所占的内存大小
+    func memorySize() -> Int {
+        return self.cgImage!.height * self.cgImage!.bytesPerRow;
+    }
+    
+    /// 从中心向外拉伸
+    func centerOutwardStretching() -> UIImage {
+        return self.stretchableImage(withLeftCapWidth: Int(self.size.width * 0.5), topCapHeight: Int(self.size.height * 0.5));
+    }
+    
+    /// 截取image里的rect区域内的图片
+    func subimage(inRect: CGRect) -> UIImage? {
+        let imageRef = self.cgImage!.cropping(to: inRect);
+        return UIImage.init(cgImage: imageRef!);
+    }
+    
+    /// 根据图片名设置图片方向
+    class func image(named: String, orientation: UIImageOrientation) -> UIImage {
+        let image = UIImage.init(named: named);
+        return UIImage.init(cgImage: (image?.cgImage)!, scale: (image?.scale)!, orientation: orientation);
+    }
+    
+    class func image(named: String, scale: CGFloat,orientation: UIImageOrientation) -> UIImage {
+        let image = UIImage.init(named: named);
+        return UIImage.init(cgImage: (image?.cgImage)!, scale: scale, orientation: orientation);
     }
 }
 
