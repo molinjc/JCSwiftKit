@@ -176,6 +176,121 @@ extension UIImage {
         let image = UIImage.init(named: named);
         return UIImage.init(cgImage: (image?.cgImage)!, scale: scale, orientation: orientation);
     }
+    
+    /// 根据图片路径设置图片方向
+    class func imageWithContentsOfFile(path: String, orientation: UIImageOrientation) -> UIImage {
+        let image = UIImage.init(contentsOfFile: path);
+        return UIImage.init(cgImage: (image?.cgImage)!, scale: (image?.scale)!, orientation: orientation);
+    }
+    
+    class func imageWithContentsOfFile(path: String, scale: CGFloat, orientation: UIImageOrientation) -> UIImage {
+        let image = UIImage.init(contentsOfFile: path);
+        return UIImage.init(cgImage: (image?.cgImage)!, scale: scale, orientation: orientation);
+    }
+    
+    /// 设置图片方向
+    func orientation(orientation: UIImageOrientation) -> UIImage {
+        return UIImage.init(cgImage: self.cgImage!, scale: self.scale, orientation: orientation);
+    }
+    
+    /// 水平翻转
+    func flipHorizontal() -> UIImage? {
+        let rect = CGRect.init(x: 0, y: 0, width: self.size.width, height: self.size.height);
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0);
+        
+        let ctx = UIGraphicsGetCurrentContext();
+        ctx?.clip(to: rect);
+        ctx?.rotate(by: CGFloat(M_PI));
+        ctx?.translateBy(x: -rect.size.width, y: -rect.size.height);
+        ctx?.draw(self.cgImage!, in: rect);
+        let image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return image;
+    }
+    
+    /// 垂直翻转
+    func flipVertical() -> UIImage? {
+        let rect = CGRect.init(x: 0, y: 0, width: self.size.width, height: self.size.height);
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0);
+        
+        let ctx = UIGraphicsGetCurrentContext();
+        ctx?.clip(to: rect);
+        ctx?.draw(self.cgImage!, in: rect);
+        let image = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return image;
+    }
+    
+    /// 将图片旋转弧度radians
+    func imageRotated(byRadians: CGFloat) -> UIImage? {
+        let rotatedViewBox = UIView.init(frame: CGRect.init(x: 0, y: 0, width: self.size.width, height: self.size.height));
+        let t = CGAffineTransform.init(rotationAngle: byRadians);
+        rotatedViewBox.transform = t;
+        let rotatedSize = rotatedViewBox.frame.size;
+        
+        UIGraphicsBeginImageContext(rotatedSize);
+        let bitmap = UIGraphicsGetCurrentContext();
+        bitmap?.translateBy(x: rotatedSize.width/2, y: rotatedSize.height/2);
+        bitmap?.rotate(by: byRadians);
+        bitmap?.scaleBy(x: 1.0, y: -1.0);
+        bitmap?.draw(self.cgImage!, in: CGRect.init(x: -self.size.width / 2, y: -self.size.height / 2, width: self.size.width, height: self.size.height));
+        
+        let newImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return newImage;
+    }
+    
+    /// 将图片旋转角度degrees
+    func imageRotated(byDegrees: CGFloat) -> UIImage? {
+        return self.imageRotated(byRadians: CGFloat(Double(byDegrees) * M_PI / 180));
+    }
+    
+    
+    /// 图片上绘制文字
+    ///
+    /// - Parameters:
+    ///   - text: 所要绘制的文字
+    ///   - textColor: 文字的颜色
+    ///   - font: 文字的字体
+    ///   - paragraphStyle: 文字的样式
+    /// - Returns: Image
+     func image(text: String, textColor: UIColor, font: UIFont, paragraphStyle: NSParagraphStyle) -> UIImage? {
+        let size = CGSize.init(width: self.size.width, height: self.size.height);
+        UIGraphicsBeginImageContextWithOptions(size, false, 0.0);        // 创建一个基于位图的上下文
+        self.draw(at: CGPoint.init(x: 0.0, y: 0.0));
+        
+        let textSize = text.sizeFor(font: font, size: self.size);
+        let rect = CGRect.init(x: (size.width - textSize.width) / 2, y: (size.height - textSize.height) / 2, width: textSize.width, height: textSize.height);
+        (text as NSString).draw(in: rect, withAttributes: [NSFontAttributeName: font,
+                                                           NSForegroundColorAttributeName:textColor,
+                                                           NSParagraphStyleAttributeName:paragraphStyle]);
+        let newImage = UIGraphicsGetImageFromCurrentImageContext();
+        UIGraphicsEndImageContext();
+        return newImage;
+    }
+    
+    func image(text: String, textColor: UIColor, font: UIFont) -> UIImage? {
+        let paragraphStyle = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle;
+        paragraphStyle.lineBreakMode = NSLineBreakMode.byCharWrapping;
+        paragraphStyle.alignment = NSTextAlignment.center;
+        return self.image(text: text, textColor: textColor, font: font, paragraphStyle: paragraphStyle);
+    }
+    
+    func image(text: String, textColor: UIColor, fontSize: CGFloat, paragraphStyle: NSParagraphStyle) -> UIImage? {
+        let font = UIFont.systemFont(ofSize: fontSize);
+        return self.image(text: text, textColor: textColor, font: font, paragraphStyle: paragraphStyle);
+    }
+    
+    func image(text: String, textColor: UIColor, fontSize: CGFloat) -> UIImage? {
+        let paragraphStyle = NSParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle;
+        paragraphStyle.lineBreakMode = NSLineBreakMode.byCharWrapping;
+        paragraphStyle.alignment = NSTextAlignment.center;
+        return self.image(text: text, textColor: textColor, fontSize: fontSize, paragraphStyle: paragraphStyle);
+    }
+    
+    func image(text: String, fontSize: CGFloat) -> UIImage? {
+        return self.image(text: text, textColor: UIColor.white, fontSize: fontSize);
+    }
 }
 
 extension UIImage {
