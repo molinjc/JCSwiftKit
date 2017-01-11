@@ -20,21 +20,55 @@ extension UIDevice {
         return UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiom.phone;
     }
     
-    /*
+    /// 是否是模拟器
     func isSimulator() -> Bool {
+        let model = self.machineModel();
+        if model == "x86_64" || model == "i386" {
+            return true;
+        }
         return false;
     }
     
-    func machineModel() -> String {
-        var size: size_t;
-        sysctlbyname("hw.machine", nil, &size, nil, 0);
-        let machine = malloc(size);
-        sysctlbyname("hw.machine", machine, &size, nil, 0);
-        let model = String.init(utf8String: machine);
-        free(machine);
-        return model;
+    /// 是否已经越狱
+    func isJailbroken() -> Bool {
+        if self.isSimulator() {
+            return false;
+        }
+        
+        let paths = ["/Applications/Cydia.app",
+                     "/private/var/lib/apt/",
+                     "/private/var/lib/cydia",
+                     "/private/var/stash"];
+        for path in paths {
+            if (FileManager.default.fileExists(atPath: path)) {
+                return true;
+            }
+        }
+        
+        let bash = fopen("/bin/bash", "r");
+        if bash != nil {
+            fclose(bash);
+            return true;
+        }
+        
+        let path = String.init(format: "/private/%@", String.stringWithUUID());
+//        if (try "test".write(toFile: path, atomically: true, encoding: String.Encoding.utf8)) {}
+//         "test".write(toFile: <#T##String#>, atomically: <#T##Bool#>, encoding: <#T##String.Encoding#>)
+        
+        do {
+            try? "test".write(toFile: path, atomically: true, encoding: String.Encoding.utf8);
+            try? FileManager.default.removeItem(atPath: path);
+            return true;
+        } catch  {
+            return false;
+        }
+        return false;
     }
-     */
+    
+    func canMakePhoneCalls() -> Bool {
+        let can = UIApplication.shared.canOpenURL(URL.init(string: "tel://")!);
+        return can;
+    }
     
     func machineModel() -> String {
         var systemInfo = utsname();
@@ -122,9 +156,4 @@ extension UIDevice {
         let time = ProcessInfo.processInfo.systemUptime;
         return Date.init(timeIntervalSinceNow: (0 - time));
     }
-//    
-//    func ipAddressWIFI() -> String {
-//        var address: String;
-//        
-//    }
 }
