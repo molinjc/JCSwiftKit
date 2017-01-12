@@ -14,3 +14,6 @@ public func JCClassFromString(_ aClassName: String) ->Swift.AnyClass? {
     return NSClassFromString("\(bundleName).\(aClassName)");
 }
 
+public func JCLog<T>(_ message: T, fileName: String = #file, methodName: String =  #function, lineNumber: Int = #line) {
+    print("🛠 行号:\(lineNumber)\n🛠 类文件:\(fileName)\n🛠 方法:\(methodName)\n🛠 内容:\(message)\n");
+}
