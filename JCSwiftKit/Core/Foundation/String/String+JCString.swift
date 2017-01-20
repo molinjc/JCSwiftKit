@@ -11,6 +11,12 @@ import UIKit
 
 extension String {
     
+    public var length: Int {
+        get {
+            return self.characters.count;
+        }
+    }
+    
     func toNumber() -> NSNumber? {
         let number = NumberFormatter.init().number(from: self);
         return number;
