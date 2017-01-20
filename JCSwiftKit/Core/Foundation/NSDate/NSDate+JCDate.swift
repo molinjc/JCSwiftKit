@@ -8,10 +8,10 @@
 
 import Foundation
 
-let kDATE_MINUTE_SEC = 60;      // 一分 = 60秒
-let kDATE_HOURS_SEC  = 3600;    // 一小时 = 60分 = 3600秒
-let kDATE_DAY_SEC    = 86400;   // 一天 = 24小时 = 86400秒
-let kDATE_WEEK_SEC   = 604800;  // 一周 = 7天 =  604800秒
+private let kNSDATE_MINUTE_SEC = 60;      // 一分 = 60秒
+private let kNSDATE_HOURS_SEC  = 3600;    // 一小时 = 60分 = 3600秒
+private let kNSDATE_DAY_SEC    = 86400;   // 一天 = 24小时 = 86400秒
+private let kNSDATE_WEEK_SEC   = 604800;  // 一周 = 7天 =  604800秒
 
 
 extension NSDate {
@@ -112,7 +112,7 @@ extension NSDate {
     /// 今天
     var isToday: Bool {
         get {
-            if (fabs(self.timeIntervalSinceNow) >= Double(kDATE_DAY_SEC)) {
+            if (fabs(self.timeIntervalSinceNow) >= Double(kNSDATE_DAY_SEC)) {
                 return false;
             }
             return NSDate.init().day == self.day;
@@ -166,22 +166,22 @@ extension NSDate {
     
     /// 当前小时后hours个小时
     class func dateWithHoursFromNow(hours: NSInteger) -> NSDate {
-        return NSDate.dateByAddingTimeInterval(ti: TimeInterval(kDATE_HOURS_SEC * hours));
+        return NSDate.dateByAddingTimeInterval(ti: TimeInterval(kNSDATE_HOURS_SEC * hours));
     }
     
     /// 当前小时前hours个小时
     class func dateWithHoursBeforeNow(hours: NSInteger) -> NSDate {
-        return NSDate.dateByAddingTimeInterval(ti: TimeInterval(-kDATE_HOURS_SEC * hours));
+        return NSDate.dateByAddingTimeInterval(ti: TimeInterval(-kNSDATE_HOURS_SEC * hours));
     }
     
     /// 当前分钟后minutes个分钟
     class func dateWithMinutesFromNow(minutes: NSInteger) -> NSDate {
-        return NSDate.dateByAddingTimeInterval(ti: TimeInterval(kDATE_MINUTE_SEC * minutes));
+        return NSDate.dateByAddingTimeInterval(ti: TimeInterval(kNSDATE_MINUTE_SEC * minutes));
     }
     
     /// 当前分钟前minutes个分钟
     class func dateWithMinutesBeforeNow(minutes: NSInteger) -> NSDate {
-        return NSDate.dateByAddingTimeInterval(ti: TimeInterval(-kDATE_MINUTE_SEC * minutes));
+        return NSDate.dateByAddingTimeInterval(ti: TimeInterval(-kNSDATE_MINUTE_SEC * minutes));
     }
     
     /// 追加天数，生成新的NSDate
