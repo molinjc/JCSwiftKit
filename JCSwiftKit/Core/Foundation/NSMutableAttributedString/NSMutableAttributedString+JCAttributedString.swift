@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 extension NSMutableAttributedString {
-    
+
     /// 字体
     func add(font: UIFont, range: NSRange) {
         self.addAttribute(NSFontAttributeName, value: font, range: range);
@@ -98,6 +98,42 @@ extension NSMutableAttributedString {
     func add(textAttachment: NSTextAttachment) {
         let subAttributedString = NSAttributedString.init(attachment: textAttachment);
         self.append(subAttributedString);
+    }
+    
+    /// 计算文本大小
+    func sizeForAttribute(size: CGSize, lineBreakMode: NSLineBreakMode) -> CGSize {
+        var width: CGFloat = 0.0;
+        var height: CGFloat = 0.0;
+        self.enumerateAttributes(in: NSRange.init(location: 0, length: self.string.characters.count), options: NSAttributedString.EnumerationOptions.reverse, using: {(attrs, range, stop) in
+            let text = (self.string as NSString).substring(with: range);
+            let font = attrs["NSFont"] as! UIFont?;
+            let paragraphStyle = attrs["NSParagraphStyle"] as! NSParagraphStyle?;
+            
+            let textSize = text.sizeFor(font: font, size: size, lineBreakMode: lineBreakMode);
+            if (paragraphStyle != nil) {
+                height += (paragraphStyle?.paragraphSpacing)! + (paragraphStyle?.paragraphSpacingBefore)! * 1.5 + (paragraphStyle?.lineSpacing)!;
+            }
+            width += textSize.width;
+            height += textSize.height;
+        });
+        
+        return CGSize.init(width: width, height: height);
+    }
+    
+    func sizeForAttribute(size: CGSize) -> CGSize {
+        return self.sizeForAttribute(size: size, lineBreakMode: NSLineBreakMode.byWordWrapping);
+    }
+    
+    func heightForAttribute(width: CGFloat) -> CGFloat {
+        return self.sizeForAttribute(size: CGSize.init(width: width, height: CGFloat(MAXFLOAT))).height;
+    }
+    
+    func heightForAttribute() -> CGFloat {
+        return self.heightForAttribute(width: CGFloat(MAXFLOAT));
+    }
+    
+    func widthForAttribute() -> CGFloat {
+        return self.sizeForAttribute(size: CGSize.init(width: CGFloat(MAXFLOAT), height: CGFloat(MAXFLOAT))).width;
     }
 }
 
